@@ -29,6 +29,11 @@ if ($info['topicId'] && ($topic=Topic::lookup($info['topicId']))) {
         $forms[] = $F->getForm();
     }
 }
+if(!$thisclient || !$thisclient->isValid() || $thisclient->isGuest()) {
+    if ($topic === null || !str_contains($topic->getName(), ' (guest)')) {
+        exit("You need to sign in to create a ticket.");
+    }
+}
 
 ?>
 <h1><?php echo __('Open a New Ticket');?></h1>
@@ -60,7 +65,8 @@ if ($info['topicId'] && ($topic=Topic::lookup($info['topicId']))) {
     </td></tr>
     <tr>
         <td colspan="2">
-            <select id="topicId" name="topicId" onchange="javascript:
+        <?php if ($topic === null) { ?>
+           <select id="topicId" name="topicId" onchange="javascript:
                     var data = $(':input[name]', '#dynamic-form').serialize();
                     $.ajax(
                       'ajax.php/form/help-topic/' + this.value,
@@ -76,12 +82,19 @@ if ($info['topicId'] && ($topic=Topic::lookup($info['topicId']))) {
                 <?php
                 if($topics=Topic::getPublicHelpTopics()) {
                     foreach($topics as $id =>$name) {
-                        echo sprintf('<option value="%d" %s>%s</option>',
+                        if(($thisclient && $thisclient->isValid()) || str_contains($name, ' (guest)')) {
+                            $name = str_replace(' (guest)', '', $name);
+                            echo sprintf('<option value="%d" %s>%s</option>',
                                 $id, ($info['topicId']==$id)?'selected="selected"':'', $name);
+                        }
                     }
                 } ?>
             </select>
             <font class="error">*&nbsp;<?php echo $errors['topicId']; ?></font>
+            <?php } else { ?>
+            <?php echo str_replace(' (guest)', '', $topic->getName()); ?>
+            <input type="hidden" name="topicId" value="<?php echo $info['topicId']; ?>">
+            <?php } ?>
         </td>
     </tr>
     </tbody>
