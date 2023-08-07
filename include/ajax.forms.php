@@ -21,6 +21,10 @@ class DynamicFormsAjaxAPI extends AjaxController {
         if (!($topic = Topic::lookup($topic_id)))
             Http::response(404, 'No such help topic');
 
+        global $thisclient;
+        if ((!$thisclient || !$thisclient->isValid()) && !str_contains($topic->getName(), ' (guest)'))
+            Http::response(403, 'Forbidden.');
+
         if ($_GET || isset($_SESSION[':form-data'])) {
             if (!is_array($_SESSION[':form-data']))
                 $_SESSION[':form-data'] = array();
