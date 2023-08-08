@@ -22,7 +22,8 @@ class DynamicFormsAjaxAPI extends AjaxController {
             Http::response(404, 'No such help topic');
 
         global $thisclient;
-        if ((!$thisclient || !$thisclient->isValid()) && !str_contains($topic->getName(), ' (guest)'))
+        global $thisstaff;
+        if ((!$thisclient || !$thisclient->isValid()) && !str_contains($topic->getName(), ' (guest)') && (!$thisstaff || !$thisstaff->isValid()))
             Http::response(403, 'Forbidden.');
 
         if ($_GET || isset($_SESSION[':form-data'])) {
