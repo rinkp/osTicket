@@ -91,7 +91,16 @@ class Installer extends SetupWizard {
 
         //MYSQL: Connect to the DB and check the version & database (create database if it doesn't exist!)
         if(!$this->errors) {
-            if(!db_connect($vars['dbhost'],$vars['dbuser'],$vars['dbpass']))
+            // PATCHED: allow SSL connections during setup phase. Copied from bootstrap.php:
+            $options = array();
+            if (defined('DBSSLCA'))
+                $options['ssl'] = array(
+                    'ca' => DBSSLCA,
+                    'cert' => DBSSLCERT,
+                    'key' => DBSSLKEY
+                );
+            
+            if(!db_connect($vars['dbhost'],$vars['dbuser'],$vars['dbpass'],$options))
                 $this->errors['db']=sprintf(__('Unable to connect to MySQL server: %s'), db_connect_error());
             elseif(explode('.', db_version()) < explode('.', SetupWizard::getMySQLVersion()))
                 $this->errors['db']=sprintf(__('osTicket requires MySQL %s or later!'),SetupWizard::getMySQLVersion());
